@@ -5,28 +5,45 @@ import platform
 import subprocess
 
 
-def run_kakao(kakao_path):
-    print('Run KakaoTalk')
+def initialize():
+    print(pyautogui.size())
+    pyautogui.PAUSE = 0.5
+    python_path = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(python_path)
+
+
+# XXX: KakaoTalk path is set only to default install path
+def get_kakao_cmd():
+    user_os = platform.system()
+    kakao_path = ['C:\Program Files (x86)\Kakao\KakaoTalk\KakaoTalk.exe']
+    if user_os == 'Darwin':
+        kakao_path = ['open', '-a', 'KakaoTalk']
+    return kakao_path
+
+
+def run_kakao():
+    kakao_path = get_kakao_cmd()
+    print(f'Run KakaoTalk : {kakao_path}')
     try:
         subprocess.run(kakao_path)
     except Exception:
-        print(f'[ERROR] Execute Kakaotalk path: {kakao_path}')
+        print('[ERROR] Execute Kakaotalk')
         raise
 
 
-def enter_chatroom(chat_idx, retina_user):
+def enter_chatroom(chat_idx):
     chat_imgs = ['chat.png', 'chat_with_msg.png']
     for chat_png in chat_imgs:
         try:
-            click_img(chat_png, retina_user)
+            click_img(chat_png)
         except TypeError:
+            print(f'Not match with image: {chat_png}')
             pass
         except Exception:
             print(f'[ERROR] Click image: {chat_png}')
             raise
-
     # Focus on 1st chatroom
-    pyautogui.hotkey('home')
+    pyautogui.hotkey(*home_key)
     print(f"Enter the {chat_idx}th chatroom")
     for _ in range(1, chat_idx):
         pyautogui.press('down')
@@ -34,58 +51,52 @@ def enter_chatroom(chat_idx, retina_user):
 
 
 # TODO: Return response to sending msg (Need Cursor check)
-def send_msg(msg, cmd):
+def send_msg(msg):
     pyperclip.copy(msg)
-    pyautogui.hotkey(cmd, 'v')
+    pyautogui.hotkey(cmd_key, 'v')
     pyautogui.press('enter')
 
 
-def click_img(png_name, retina_user):
+def click_img(png_name):
     img_path = os.path.join('img', png_name)
     location = pyautogui.locateCenterOnScreen(img_path, confidence=0.9)
     x, y = location
-    if retina_user:
+    if is_retina:
         x = x / 2
         y = y / 2
-    pyautogui.click(x, y)
-
-
-# XXX: KakaoTalk path is set only to default install path
-def config_by_os():
-    user_os = platform.system()
-    kakao_path = ['C:\Program Files (x86)\Kakao\KakaoTalk\KakaoTalk.exe']
-    cmd = 'ctrl'
-    retina_user = False
-    if user_os == 'Darwin':
-        kakao_path = ['open', '-a', 'KakaoTalk']
-        cmd = 'command'
-        if subprocess.call("system_profiler SPDisplaysDataType | grep 'retina'", shell=True) == 0:
-            retina_user = True
-    return kakao_path, cmd, retina_user
+    pyautogui.moveTo(x, y)
+    pyautogui.click()
 
 
 def talk_check():
-    chatroom_idx = 3
-    my_msg = '출근했습니다'
-    kakao_path, cmd_key, retina_user = config_by_os()
-    success = False
+    initialize()
+    # Set chatroom index and message below
+    # chatroom_idx = {YOUR_CHATROOM_INDEX}
+    # my_msg = {YOUR_MSG}
+    chatroom_idx = 1
+    my_msg = 'test'
 
     try:
-        run_kakao(kakao_path)
-        enter_chatroom(chatroom_idx, retina_user)
-        send_msg(my_msg, cmd_key)
-        success = True
+        run_kakao()
+        enter_chatroom(chatroom_idx)
+        send_msg(my_msg)
+        return True
     except Exception as e:
         print(f'Error: {e}')
+        return False
 
-    return success
 
+# Config changed by OS
+cmd_key = 'ctrl'
+home_key = ('home')
+is_retina = False
+
+if platform.system() == "Darwin":
+    is_retina = subprocess.call("system_profiler SPDisplaysDataType | grep 'retina'", shell=True)
+    cmd_key = 'command'
+    home_key = ('option', 'up')
 
 if __name__ == "__main__":
-    pyautogui.PAUSE = 0.5
-    python_path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(python_path)
-
     talk_result = talk_check()
     if talk_result:
         exit(0)
