@@ -41,9 +41,10 @@ def enter_chatroom(chat_idx):
             pass
         except Exception:
             print(f'[ERROR] Click image: {chat_png}')
-            raise
+
     # Focus on 1st chatroom
     pyautogui.hotkey(*home_key)
+    print(*home_key)
     print(f"Enter the {chat_idx}th chatroom")
     for _ in range(1, chat_idx):
         pyautogui.press('down')
@@ -70,11 +71,13 @@ def click_img(png_name):
 
 def talk_check():
     initialize()
-    # Set chatroom index and message below
-    # chatroom_idx = {YOUR_CHATROOM_INDEX}
-    # my_msg = {YOUR_MSG}
-    chatroom_idx = 1
-    my_msg = 'test'
+    """Set chatroom index and message below
+        Example like this
+        chatroom_idx = 1
+        my_msg = 'test'
+    """
+    chatroom_idx = {YOUR_CHATROOM_INDEX}
+    my_msg = {YOUR_MSG}
 
     try:
         run_kakao()
@@ -88,7 +91,7 @@ def talk_check():
 
 # Config changed by OS
 cmd_key = 'ctrl'
-home_key = ('home')
+home_key = ('home', '')
 is_retina = False
 
 if platform.system() == "Darwin":
